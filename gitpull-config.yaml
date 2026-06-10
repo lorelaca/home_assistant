@@ -1,0 +1,16 @@
+repository: https://github.com/lorelaca/home_assistant
+git_branch: main
+git_remote: origin
+auto_restart: false
+restart_ignore:
+  - ui-lovelace.yaml
+  - .gitignore
+git_command: pull
+git_prune: false
+deployment_key: []
+deployment_user: ""
+deployment_password: ""
+deployment_key_protocol: rsa
+repeat:
+  active: true
+  interval: 60

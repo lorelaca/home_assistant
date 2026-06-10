@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salfara</title>
+<link rel="stylesheet" href="/local/salfara.css">
+</head>
+<body>
+
+<!-- Navbar fissa -->
+<nav class="navbar">
+  <button class="nav-item active" data-view="home"         onclick="navigate('home')">Home</button>
+  <button class="nav-item"        data-view="cucina"       onclick="navigate('cucina')">Cucina</button>
+  <button class="nav-item"        data-view="clima"        onclick="navigate('clima')">Clima</button>
+  <button class="nav-item"        data-view="consumi"      onclick="navigate('consumi')">Consumi</button>
+  <button class="nav-item"        data-view="automazioni"  onclick="navigate('automazioni')">Automazioni</button>
+  <button class="nav-item"        data-view="statistiche"  onclick="navigate('statistiche')">Statistiche</button>
+  <button class="nav-item"        data-view="sistema"      onclick="navigate('sistema')">Sistema</button>
+  <button class="nav-item"        data-view="impostazioni" onclick="navigate('impostazioni')">Impostazioni</button>
+</nav>
+
+<!-- View container — tutta la navigazione avviene qui -->
+<div id="view"></div>
+
+<!-- Toast salvataggio -->
+<div class="save-toast" id="save-toast">✓ Salvato</div>
+
+<!-- Stato connessione -->
+<div class="conn-status connecting" id="conn-status">Connessione...</div>
+
+<!-- Chart.js + adapter (usato solo in Statistiche) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<!-- App engine -->
+<script src="/local/salfara.js"></script>
+
+</body>
+</html>

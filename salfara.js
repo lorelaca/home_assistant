@@ -213,6 +213,12 @@ function patch(id, val, attr) {
       setToggle('tog-vmc-home',     val==='on');
       setText('vmc-home-stato', val==='on'?'Accesa':'Spenta');
       break;
+
+    // Luci
+    case 'switch.presa_parentesi':
+      setToggle('tog-parentesi-home', val==='on');
+      setStyle('tog-parentesi-home', 'background', val==='on'?'#D97706':'');
+      break;
   }
 }
 
@@ -802,7 +808,7 @@ function home() {
         <div class="card accent-purple clickable" onclick="navigate('clima')"><div class="val" id="temp-soppalco">${ts3}</div><div class="lbl">Soppalco</div><div class="sub" id="modo-soppalco" style="color:${modeColor(S['climate.soppalco']?.state)};">${modeLabel(S['climate.soppalco']?.state||'off')}</div></div>
       </div>
       <div class="section-label" style="background:rgba(0,0,0,0.05);border-radius:10px;padding:0 12px;height:36px;display:flex;align-items:center;font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:1.5px;">Elettrodomestici</div>
-      <div class="grid2">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
         <div class="card accent-orange clickable" id="card-forno" onclick="navigate('cucina')">
           <div class="val sm ${fornoSt==='In funzione'?'stato-on-red':'stato-off'}" id="forno-badge-main">${fornoSt==='In funzione'?'In funzione':'Inattivo'}</div>
           <div class="lbl">Forno</div>
@@ -814,6 +820,10 @@ function home() {
         <div class="card accent-purple clickable" id="card-lavatrice" onclick="navigate('cucina')">
           <div class="val sm ${lavSt==='In funzione'?'stato-on-purple':'stato-off'}">${lavSt==='In funzione'?'In funzione':'Inattivo'}</div>
           <div class="lbl">Lavatrice</div>
+        </div>
+        <div class="card accent-red clickable" onclick="navigate('cucina')">
+          <div class="val sm ${S['sensor.piano_cottura_stato_di_funzionamento']?.state==='In funzione'?'stato-on-red':'stato-off'}">${S['sensor.piano_cottura_stato_di_funzionamento']?.state==='In funzione'?'In funzione':'Inattivo'}</div>
+          <div class="lbl">Piano Cottura</div>
         </div>
         <div class="card accent-cyan clickable" onclick="navigate('cucina')">
           <div class="val sm" style="color:#0EA5E9;" id="congel-temp">${congelT}°C</div>
@@ -840,6 +850,14 @@ function home() {
           <div class="lbl">VMC — Sonoff</div>
         </div>
         <button class="toggle-switch ${vmcOn?'on':''}" id="tog-vmc-home" style="pointer-events:none;"></button>
+      </div>
+      <div class="section-label" style="background:rgba(0,0,0,0.05);border-radius:10px;padding:0 12px;height:36px;display:flex;align-items:center;font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:1.5px;">Luci</div>
+      <div class="card clickable" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;" onclick="toggleSwitch('switch.presa_parentesi','tog-parentesi-home')">
+        <div>
+          <div class="val sm" style="color:${S['switch.presa_parentesi']?.state==='on'?'#D97706':'#9CA3AF'};">${S['switch.presa_parentesi']?.state==='on'?'Accesa':'Spenta'}</div>
+          <div class="lbl">Parentesi</div>
+        </div>
+        <button class="toggle-switch ${S['switch.presa_parentesi']?.state==='on'?'on':''}" id="tog-parentesi-home" style="pointer-events:none;"></button>
       </div>
       <div class="section-label" style="background:rgba(0,0,0,0.05);border-radius:10px;padding:0 12px;height:36px;display:flex;align-items:center;font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:1.5px;">Rete</div>
       <div class="grid2">
@@ -969,52 +987,78 @@ function cucina() {
   const fornoOn = forno.stato==='In funzione'; const lavastOn = lavast.stato==='In funzione'; const lavOn = lavatrice.stato==='In funzione';
 
   return `
-<div style="padding:20px 28px;">
-  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px;">
+<div style="padding:20px 28px 16px;">
+  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px;">
     <div class="page-title">🍳 Cucina</div>
     <div class="col-label">Elettrodomestici</div>
   </div>
   <div class="grid5">
 
     <!-- FORNO -->
-    <button class="appl-btn${fornoOn?' active-forno':''}" id="btn-forno" onclick="openPopup('forno')">
-      <div class="appl-icon" style="background:#FFF7ED;"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="3" y="5" width="20" height="16" rx="3" stroke="#EA580C" stroke-width="1.5" fill="none"/><rect x="6" y="9" width="14" height="8" rx="1.5" stroke="#EA580C" stroke-width="1.2" fill="none"/><circle cx="8" cy="7.5" r="1" fill="#EA580C"/><circle cx="13" cy="7.5" r="1" fill="#EA580C"/><circle cx="18" cy="7.5" r="1" fill="#EA580C"/></svg></div>
-      <div><div class="appl-name">Forno</div><div class="appl-brand">Siemens iQ700</div></div>
-      <div class="appl-stato ${fornoOn?'stato-orange':'stato-off'}" id="forno-badge">${fornoOn?'In funzione':'Inattivo'}</div>
-      <div class="appl-detail" id="forno-detail">${forno.temp}°C</div>
+    <button class="appl-btn-fusion${fornoOn?' appl-fusion-active':''}" id="btn-forno" onclick="openPopup('forno')" style="--fusion-color:#EA580C;--fusion-bg:linear-gradient(135deg,#431407 0%,#7c2d12 50%,#9a3412 100%);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="appl-fusion-icon" style="background:rgba(234,88,12,0.25);">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="3" y="5" width="20" height="16" rx="3" stroke="#FB923C" stroke-width="1.5" fill="none"/><rect x="6" y="9" width="14" height="8" rx="1.5" stroke="#FB923C" stroke-width="1.2" fill="none"/><circle cx="8" cy="7.5" r="1" fill="#FB923C"/><circle cx="13" cy="7.5" r="1" fill="#FB923C"/><circle cx="18" cy="7.5" r="1" fill="#FB923C"/></svg>
+        </div>
+        <div class="appl-fusion-badge ${fornoOn?'badge-fusion-on':'badge-fusion-off'}">${fornoOn?'In funzione':'Inattivo'}</div>
+      </div>
+      <div class="appl-fusion-name">Forno</div>
+      <div class="appl-fusion-brand">Siemens iQ700</div>
+      <div class="appl-fusion-val" style="color:#FB923C;">${forno.temp}°C</div>
     </button>
 
     <!-- PIANO COTTURA -->
-    <button class="appl-btn${piano.stato==='In funzione'?' active-piano':''}" id="btn-piano" onclick="openPopup('piano')">
-      <div class="appl-icon" style="background:#FEF2F2;"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="3" y="7" width="20" height="12" rx="3" stroke="#DC2626" stroke-width="1.5" fill="none"/><circle cx="8.5" cy="13" r="2.5" stroke="#DC2626" stroke-width="1.2" fill="none"/><circle cx="17.5" cy="13" r="2.5" stroke="#DC2626" stroke-width="1.2" fill="none"/><circle cx="8.5" cy="13" r="0.8" fill="#DC2626"/><circle cx="17.5" cy="13" r="0.8" fill="#DC2626"/></svg></div>
-      <div><div class="appl-name">Piano Cottura</div><div class="appl-brand">Siemens iQ700</div></div>
-      <div class="appl-stato ${piano.stato==='In funzione'?'stato-orange':'stato-off'}">${piano.stato==='In funzione'?'In funzione':'Inattivo'}</div>
-      <div class="appl-detail">${piano.stato}</div>
+    <button class="appl-btn-fusion${piano.stato==='In funzione'?' appl-fusion-active':''}" id="btn-piano" onclick="openPopup('piano')" style="--fusion-color:#DC2626;--fusion-bg:linear-gradient(135deg,#450a0a 0%,#7f1d1d 50%,#991b1b 100%);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="appl-fusion-icon" style="background:rgba(220,38,38,0.25);">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="3" y="7" width="20" height="12" rx="3" stroke="#F87171" stroke-width="1.5" fill="none"/><circle cx="8.5" cy="13" r="2.5" stroke="#F87171" stroke-width="1.2" fill="none"/><circle cx="17.5" cy="13" r="2.5" stroke="#F87171" stroke-width="1.2" fill="none"/><circle cx="8.5" cy="13" r="0.8" fill="#F87171"/><circle cx="17.5" cy="13" r="0.8" fill="#F87171"/></svg>
+        </div>
+        <div class="appl-fusion-badge ${piano.stato==='In funzione'?'badge-fusion-on':'badge-fusion-off'}">${piano.stato==='In funzione'?'In funzione':'Inattivo'}</div>
+      </div>
+      <div class="appl-fusion-name">Piano Cottura</div>
+      <div class="appl-fusion-brand">Siemens iQ700</div>
+      <div class="appl-fusion-val" style="color:#F87171;">${piano.stato}</div>
     </button>
 
     <!-- LAVASTOVIGLIE -->
-    <button class="appl-btn${lavastOn?' active-lavast':''}" id="btn-lavast" onclick="openPopup('lavast')">
-      <div class="appl-icon" style="background:#F0FDFA;"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="4" y="3" width="18" height="20" rx="3" stroke="#0F766E" stroke-width="1.5" fill="none"/><line x1="4" y1="8" x2="22" y2="8" stroke="#0F766E" stroke-width="1.2"/><circle cx="13" cy="15" r="4" stroke="#0F766E" stroke-width="1.2" fill="none"/><circle cx="13" cy="15" r="1.5" fill="#0F766E" opacity="0.5"/></svg></div>
-      <div><div class="appl-name">Lavastoviglie</div><div class="appl-brand">Siemens</div></div>
-      <div class="appl-stato ${lavastOn?'stato-teal':lavast.stato==='Pronto'?'stato-blue':'stato-off'}">${lavastOn?'In funzione':lavast.stato==='Pronto'?'Pronto':'Inattivo'}</div>
-      <div class="appl-detail">Porta: ${lavast.porta}</div>
+    <button class="appl-btn-fusion${lavastOn?' appl-fusion-active':''}" id="btn-lavast" onclick="openPopup('lavast')" style="--fusion-color:#0F766E;--fusion-bg:linear-gradient(135deg,#042f2e 0%,#134e4a 50%,#115e59 100%);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="appl-fusion-icon" style="background:rgba(20,184,166,0.25);">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="4" y="3" width="18" height="20" rx="3" stroke="#2DD4BF" stroke-width="1.5" fill="none"/><line x1="4" y1="8" x2="22" y2="8" stroke="#2DD4BF" stroke-width="1.2"/><circle cx="13" cy="15" r="4" stroke="#2DD4BF" stroke-width="1.2" fill="none"/><circle cx="13" cy="15" r="1.5" fill="#2DD4BF" opacity="0.5"/></svg>
+        </div>
+        <div class="appl-fusion-badge ${lavastOn?'badge-fusion-on':'badge-fusion-off'}">${lavastOn?'In funzione':'Inattivo'}</div>
+      </div>
+      <div class="appl-fusion-name">Lavastoviglie</div>
+      <div class="appl-fusion-brand">Siemens</div>
+      <div class="appl-fusion-val" style="color:#2DD4BF;">${lavastOn?lavast.avanz+'%':lavast.porta}</div>
     </button>
 
     <!-- LAVATRICE -->
-    <button class="appl-btn${lavOn?' active-lavatrice':''}" id="btn-lavatrice" onclick="openPopup('lavatrice')">
-      <div class="appl-icon" style="background:#FAF5FF;"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="3" y="3" width="20" height="20" rx="3" stroke="#7C3AED" stroke-width="1.5" fill="none"/><circle cx="13" cy="14" r="5.5" stroke="#7C3AED" stroke-width="1.2" fill="none"/><circle cx="13" cy="14" r="2" fill="#7C3AED" opacity="0.4"/><circle cx="7" cy="7" r="1" fill="#7C3AED"/><circle cx="10" cy="7" r="1" fill="#7C3AED"/></svg></div>
-      <div><div class="appl-name">Lavatrice</div><div class="appl-brand">Miele</div></div>
-      <div class="appl-stato ${lavOn?'stato-purple':'stato-off'}">${lavOn?'In funzione':'Inattivo'}</div>
-      <div class="appl-detail">${lavatrice.residuo&&lavatrice.residuo!=='0'?lavatrice.residuo+' min rimasti':'--'}</div>
+    <button class="appl-btn-fusion${lavOn?' appl-fusion-active':''}" id="btn-lavatrice" onclick="openPopup('lavatrice')" style="--fusion-color:#7C3AED;--fusion-bg:linear-gradient(135deg,#2e1065 0%,#4c1d95 50%,#5b21b6 100%);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="appl-fusion-icon" style="background:rgba(139,92,246,0.25);">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="3" y="3" width="20" height="20" rx="3" stroke="#A78BFA" stroke-width="1.5" fill="none"/><circle cx="13" cy="14" r="5.5" stroke="#A78BFA" stroke-width="1.2" fill="none"/><circle cx="13" cy="14" r="2" fill="#A78BFA" opacity="0.4"/><circle cx="7" cy="7" r="1" fill="#A78BFA"/><circle cx="10" cy="7" r="1" fill="#A78BFA"/></svg>
+        </div>
+        <div class="appl-fusion-badge ${lavOn?'badge-fusion-on':'badge-fusion-off'}">${lavOn?'In funzione':'Inattivo'}</div>
+      </div>
+      <div class="appl-fusion-name">Lavatrice</div>
+      <div class="appl-fusion-brand">Miele</div>
+      <div class="appl-fusion-val" style="color:#A78BFA;">${lavatrice.residuo&&lavatrice.residuo!=='0'?lavatrice.residuo+' min':'--'}</div>
     </button>
 
     <!-- CONGELATORE -->
-    <button class="appl-btn" id="btn-congel" onclick="openPopup('congel')">
-      <div class="appl-icon" style="background:#E0F2FE;"><svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="4" y="2" width="18" height="22" rx="3" stroke="#0284C7" stroke-width="1.5" fill="none"/><line x1="4" y1="12" x2="22" y2="12" stroke="#0284C7" stroke-width="1.2"/><path d="M13 5L13 9M13 15L13 19" stroke="#0284C7" stroke-width="1" stroke-linecap="round"/></svg></div>
-      <div><div class="appl-name">Congelatore</div><div class="appl-brand">Miele</div></div>
-      <div class="appl-stato stato-blue">Attivo</div>
-      <div class="appl-detail" id="congel-temp-main" style="font-size:18px;font-weight:800;color:#0284C7;">${congel.temp}°C</div>
+    <button class="appl-btn-fusion" id="btn-congel" onclick="openPopup('congel')" style="--fusion-color:#0284C7;--fusion-bg:linear-gradient(135deg,#082f49 0%,#0c4a6e 50%,#075985 100%);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="appl-fusion-icon" style="background:rgba(14,165,233,0.25);">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><rect x="4" y="2" width="18" height="22" rx="3" stroke="#38BDF8" stroke-width="1.5" fill="none"/><line x1="4" y1="12" x2="22" y2="12" stroke="#38BDF8" stroke-width="1.2"/><path d="M13 5L13 9M13 15L13 19" stroke="#38BDF8" stroke-width="1" stroke-linecap="round"/></svg>
+        </div>
+        <div class="appl-fusion-badge badge-fusion-blue">Attivo</div>
+      </div>
+      <div class="appl-fusion-name">Congelatore</div>
+      <div class="appl-fusion-brand">Miele</div>
+      <div class="appl-fusion-val" id="congel-temp-main" style="color:#38BDF8;font-size:22px;">${congel.temp}°C</div>
     </button>
+
   </div>
 </div>
 
@@ -1330,8 +1374,8 @@ function consumi() {
     ${kpiK('sensor.growatt_energia_prodotta_oggi','#F59E0B','Prodotto oggi')}
     ${kpiK('sensor.growatt_energia_prelevata_rete_totale','#EF4444','Prelevato oggi')}
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;min-height:0;">
-    <div class="card">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;flex:1;min-height:0;overflow:hidden;">
+    <div class="card" style="overflow:hidden;">
       <div style="font-size:12px;font-weight:600;color:#9CA3AF;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px;">Flusso energetico</div>
       <div style="display:grid;grid-template-columns:1fr 80px 1fr;grid-template-rows:1fr 60px 1fr;gap:8px;width:200px;height:160px;align-items:center;justify-items:center;margin:0 auto;">
         <div></div>
@@ -1590,7 +1634,7 @@ function statistiche() {
     </div>`;
 
   return `
-<div style="padding:14px 28px;">
+<div style="padding:14px 28px;height:calc(100vh - 52px);overflow-y:auto;overflow-x:hidden;">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
     <div class="page-title">📊 Statistiche</div>
     <div class="period-selector">

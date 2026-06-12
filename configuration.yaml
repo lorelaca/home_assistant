@@ -1,9 +1,0 @@
-homeassistant:
-  auth_providers:
-    - type: trusted_networks
-      trusted_networks:
-        - 192.168.178.0/24
-      allow_bypass_login: true
-    - type: homeassistant
-
-default_config:
